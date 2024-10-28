@@ -1,7 +1,8 @@
 !function (w, f) {
+    "use strict";
     f(w);
 }(window, function (w) {
-    let ed = {};
+    "use strict";
     let qry = function (selector) {
         let list =
             typeof selector === "string" ? document.querySelectorAll(selector) :
@@ -18,7 +19,16 @@
         let cb = {
             SMVQuery: qry,
             size: list.length,
+            ready(callback) {
+                if (document.readyState === "complete" || document.readyState === "interactive") {
+                    setTimeout(callback, 1);
+                } else {
+                    document.addEventListener("DOMContentLoaded", callback);
+                }
+            },
+
             on(event, element_or_callback, callback) {
+                // eslint-disable-next-line no-unused-vars
                 loop(function (item, _) {
                     item.addEventListener(event, function (ev) {
                         if (callback) {
@@ -33,6 +43,7 @@
             },
             click(controller) {
                 if (typeof controller === "undefined") {
+                    // eslint-disable-next-line no-unused-vars
                     loop(function (item, _) {
                         item.click();
                     })
@@ -46,12 +57,14 @@
                 return this
             },
             show() {
+                // eslint-disable-next-line no-unused-vars
                 loop(function (item, _) {
                     item.style.display = "block"
                 })
                 return this
             },
             hide() {
+                // eslint-disable-next-line no-unused-vars
                 loop(function (item, _) {
                     item.style.display = "none"
                 })
@@ -134,9 +147,10 @@
                 return this;
             },
             css(styles) {
+                // eslint-disable-next-line no-unused-vars
                 loop(function (item, _) {
                     for (let property in styles) {
-                        if (styles.hasOwnProperty(property)) {
+                        if (Object.prototype.hasOwnProperty.call(styles, property)) {
 
                             const camelCaseProperty = property.replace(/-([a-z])/g, g => g[1].toUpperCase());
                             item.style[camelCaseProperty] = styles[property];
@@ -151,6 +165,41 @@
                         item.removeAttribute(attr_name)
                 })
                 return this
+            },
+            append(content) {
+                loop(function (item) {
+                    if (typeof content === "string") {
+                        item.insertAdjacentHTML("beforeend", content);
+                    } else if (content instanceof Node) {
+                        item.appendChild(content);
+                    } else if (content instanceof NodeList || Array.isArray(content)) {
+                        content.forEach(node => {
+                            if (node instanceof Node) {
+                                item.appendChild(node);
+                            }
+                        });
+                    }
+                });
+                return this;
+            },
+            prepend(content) {
+                loop(function (item) {
+                    if (typeof content === "string") {
+                        // If content is a string, interpret it as HTML
+                        item.insertAdjacentHTML("afterbegin", content);
+                    } else if (content instanceof Node) {
+                        // If content is a DOM node, prepend it directly
+                        item.insertBefore(content, item.firstChild);
+                    } else if (content instanceof NodeList || Array.isArray(content)) {
+                        // If content is a list of nodes, prepend each one in reverse order
+                        Array.from(content).reverse().forEach(node => {
+                            if (node instanceof Node) {
+                                item.insertBefore(node, item.firstChild);
+                            }
+                        });
+                    }
+                });
+                return this;
             },
             next() {
                 let nextElements = [];
@@ -267,6 +316,7 @@
                     function () {
                     } : callback;
                 action = typeof action === "undefined" ? "show" : action;
+                // eslint-disable-next-line no-unused-vars
                 let on_dismiss, on_open;
                 let props = {
                     onClose(controller) {
@@ -342,7 +392,7 @@
                     "false": false,
                     "null": null
                 }
-                if (dv.hasOwnProperty(data))
+                if (Object.prototype.hasOwnProperty.call(dv, data))
                     return dv
                 if (data === +data + "") {
                     return +data;
@@ -361,12 +411,14 @@
                     if (typeof data === "string") {
                         try {
                             data = this.formatData(data);
-                        } catch (e) {
+                            // eslint-disable-next-line no-unused-vars
+                        } catch (_) { /* empty */
                         }
                         dataStore.set(elem, key, data);
                     } else {
                         try {
                             data = this.formatData(dataStore.get(elem, key));
+                            // eslint-disable-next-line no-unused-vars
                         } catch (e) {
                             data = dataStore.get(elem, key)
                         }
@@ -445,31 +497,36 @@
         init: () => {
             function initView() {
                 if (!$$(".smv-layout-floating").size) {
-                    $("html").append("<div class=smv-layout-floating>");
-                    $(".smv-layout-floating").append(`
+                    $$("html").append("<div class=smv-layout-floating>");
+                    $$(".smv-layout-floating").append(`
                             <div class="page-loader">
                                 <div class="page-loader-content">
                                     <span class="loader-spinner"></span>
                                 </div>
                             </div>`);
                 } else {
-                    alert()
+                    // alert()
+                    // eslint-disable-next-line no-unused-vars
                     setTimeout(_ => initView(), 300);
                 }
             }
 
-            $(document).ready(function () {
+            $$(document).ready(function () {
                 initView();
             })
             SMV.events()
         },
         loader: {
+            // eslint-disable-next-line no-unused-vars
             show: _ => {
                 let ld = $(".page-loader").css({display: "block"});
+                // eslint-disable-next-line no-unused-vars
                 setTimeout(_ => ld.addClass("show"))
             },
+            // eslint-disable-next-line no-unused-vars
             hide: _ => {
                 let ld = $(".page-loader").removeClass("show");
+                // eslint-disable-next-line no-unused-vars
                 setTimeout(_ => ld.css({display: "none"}), 300)
             }
         },
@@ -511,6 +568,7 @@
             };
         },
         smv_page: url => {
+            // eslint-disable-next-line no-unused-vars
             url && url !== "#" && (_ => {
                 SMV.loader.show();
                 $.ajax({
@@ -609,8 +667,8 @@
                 const typingSpeed = 50;
                 const erasingSpeed = 50;
                 const delay = 3000;
-                let start = !!1,
-                    end = !!0
+                // eslint-disable-next-line no-unused-vars
+                let end = !!0
 
                 let maxl = $(this).find(".typing-text").each(function () {
                     this.style.display = 'none';
@@ -676,4 +734,5 @@
         }
     }
     SMV.init();
-})
+});
+// smv js v1.0.1
