@@ -7,7 +7,7 @@
         let list =
             typeof selector === "string" ? document.querySelectorAll(selector) :
                 (selector instanceof NodeList || Array.isArray(selector) ? Array.from(selector) : [selector]);
-        if (selector.SMVQuery) {
+        if (selector.SMVQuery && selector !== window) {
             list = selector;
         }
         let loop = action => {
