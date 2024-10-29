@@ -490,10 +490,11 @@
     qry.post = function () {
 
     }
-    w.SMVQuery = w.$$ = qry;
+    let $$, SMV;
+    w.SMVQuery = w.$$ = $$ = qry;
 
     let smv_ev = {};
-    w.SMV = {
+    w.SMV = SMV = {
         init: () => {
             function initView() {
                 if (!$$(".smv-layout-floating").size) {
@@ -519,13 +520,13 @@
         loader: {
             // eslint-disable-next-line no-unused-vars
             show: _ => {
-                let ld = $(".page-loader").css({display: "block"});
+                let ld = $$(".page-loader").css({display: "block"});
                 // eslint-disable-next-line no-unused-vars
-                setTimeout(_ => ld.addClass("show"))
+                setTimeout(_ => ld.aClass("show"))
             },
             // eslint-disable-next-line no-unused-vars
             hide: _ => {
-                let ld = $(".page-loader").removeClass("show");
+                let ld = $$(".page-loader").rClass("show");
                 // eslint-disable-next-line no-unused-vars
                 setTimeout(_ => ld.css({display: "none"}), 300)
             }
@@ -626,6 +627,10 @@
                 ev.preventDefault();
                 let target = $$(this).data("smv-target") || $$(this).attr("href");
                 $$(target).modal("show", null, this);
+            });
+            $$(w).on("popstate", function (ev) {
+                ev.preventDefault();
+                SMV.smv_page(w.location.pathname);
             });
         },
         on(event, callback) {
