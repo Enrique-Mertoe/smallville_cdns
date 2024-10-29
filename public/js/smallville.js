@@ -601,7 +601,7 @@
                                 top: 0,
                                 behavior: 'smooth',
                             })
-                            // smv.watcher(newContent);
+                            SMV.watcher(newContent);
                         }
 
                         if (isDefault) {
