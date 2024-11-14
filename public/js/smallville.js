@@ -357,10 +357,13 @@
                     } : callback;
                 action = typeof action === "undefined" ? "show" : action;
                 // eslint-disable-next-line no-unused-vars
-                let on_dismiss = [], on_open;
+                let on_dismiss = [], on_open, on_dismissed = [];
                 let props = {
                     onClose(controller) {
                         on_dismiss.push(controller);
+                    },
+                    onClosed(controller) {
+                        on_dismissed.push(controller);
                     },
                     onOpen(controller) {
                         on_open = controller;
@@ -391,12 +394,24 @@
                 }
                 const hide = md => {
                     let is_default = !!1;
+                    // eslint-disable-next-line no-unused-vars
+                    const dismissed = _ => {
+                        if (Array.isArray(on_dismissed))
+                            on_dismissed.forEach(d => {
+                                d();
+                            });
+                    };
+                    // eslint-disable-next-line no-unused-vars
                     const run_default = _ => {
                         $$(md).rClass("show")
-                        SMV.delay(_ => $$(md).css({
-                            display: "none"
-                        }), 200);
-                    }
+                        // eslint-disable-next-line no-unused-vars
+                        SMV.delay(_ => {
+                            $$(md).css({
+                                display: "none"
+                            });
+                            dismissed();
+                        }, 200);
+                    };
                     let ev = {
                         preventDefault() {
                             is_default = false
