@@ -170,11 +170,13 @@
                 loop(function (item) {
                     if (typeof content === "string") {
                         item.insertAdjacentHTML("beforeend", content);
-                    }else if (content.SMVQuery && content !== window){
-                        alert(78)
+                    } else if (content.SMVQuery && content !== window) {
+                        if (content.size)
+                            content.each(function () {
+                                item.appendChild(this);
+                            })
 
-                    }
-                    else if (content instanceof Node) {
+                    } else if (content instanceof Node) {
                         item.appendChild(content);
                     } else if (content instanceof NodeList || Array.isArray(content)) {
                         content.forEach(node => {
@@ -191,7 +193,14 @@
                     if (typeof content === "string") {
                         // If content is a string, interpret it as HTML
                         item.insertAdjacentHTML("afterbegin", content);
-                    } else if (content instanceof Node) {
+                    }else if (content.SMVQuery && content !== window) {
+                        if (content.size)
+                            content.each(function () {
+                                item.insertBefore(this, item.firstChild);
+                            })
+
+                    }
+                    else if (content instanceof Node) {
                         // If content is a DOM node, prepend it directly
                         item.insertBefore(content, item.firstChild);
                     } else if (content instanceof NodeList || Array.isArray(content)) {
