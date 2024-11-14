@@ -188,6 +188,20 @@
                 });
                 return this;
             },
+            appendTo(container) {
+                loop(function (item) {
+                    if (typeof container === "string") {
+                        $$(container).append(item);
+                    } else if (container.SMVQuery && container !== window) {
+                        if (container.size)
+                            container.append(item)
+
+                    } else if (container instanceof Node) {
+                        container.appendChild(item);
+                    }
+                });
+                return this;
+            },
             prepend(content) {
                 loop(function (item) {
                     if (typeof content === "string") {
