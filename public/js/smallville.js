@@ -171,7 +171,7 @@
                     if (typeof content === "string") {
                         item.insertAdjacentHTML("beforeend", content);
                     }else if (content.SMVQuery && content !== window){
-                        alert()
+                        alert(78)
 
                     }
                     else if (content instanceof Node) {
