@@ -202,19 +202,32 @@
                 });
                 return this;
             },
+            prependTo(container) {
+                loop(function (item) {
+                    if (typeof container === "string") {
+                        $$(container).prepend(item);
+                    } else if (container.SMVQuery && container !== window) {
+                        if (container.size)
+                            container.prepend(item)
+
+                    } else if (container instanceof Node) {
+                        container.insertBefore(item, container.firstChild);
+                    }
+                });
+                return this;
+            },
             prepend(content) {
                 loop(function (item) {
                     if (typeof content === "string") {
                         // If content is a string, interpret it as HTML
                         item.insertAdjacentHTML("afterbegin", content);
-                    }else if (content.SMVQuery && content !== window) {
+                    } else if (content.SMVQuery && content !== window) {
                         if (content.size)
                             content.each(function () {
                                 item.insertBefore(this, item.firstChild);
                             })
 
-                    }
-                    else if (content instanceof Node) {
+                    } else if (content instanceof Node) {
                         // If content is a DOM node, prepend it directly
                         item.insertBefore(content, item.firstChild);
                     } else if (content instanceof NodeList || Array.isArray(content)) {
@@ -344,7 +357,7 @@
                     } : callback;
                 action = typeof action === "undefined" ? "show" : action;
                 // eslint-disable-next-line no-unused-vars
-                let on_dismiss=[], on_open;
+                let on_dismiss = [], on_open;
                 let props = {
                     onClose(controller) {
                         on_dismiss.push(controller);
