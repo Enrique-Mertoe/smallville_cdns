@@ -170,7 +170,11 @@
                 loop(function (item) {
                     if (typeof content === "string") {
                         item.insertAdjacentHTML("beforeend", content);
-                    } else if (content instanceof Node) {
+                    }else if (content.SMVQuery && content !== window){
+                        alert()
+
+                    }
+                    else if (content instanceof Node) {
                         item.appendChild(content);
                     } else if (content instanceof NodeList || Array.isArray(content)) {
                         content.forEach(node => {
