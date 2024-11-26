@@ -876,8 +876,8 @@
                 signal,
                 ...options
             }).then(res => {
-                if (!res.ok && res.status !== 404)
-                    run_catch(res)
+                if (!res.ok )
+                    res.status !== 404? run_catch(res):null
                 else {
                     const contentType = res.headers.get("Content-Type");
                     if (contentType && contentType.includes("application/json")) {
