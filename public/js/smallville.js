@@ -876,7 +876,7 @@
                 signal,
                 ...options
             }).then(res => {
-                if (!res.ok)
+                if (!res.ok && res.status !== 404)
                     run_catch(res)
                 else {
                     const contentType = res.headers.get("Content-Type");
