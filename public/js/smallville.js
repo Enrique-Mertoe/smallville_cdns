@@ -1,3 +1,10 @@
+/*!
+ * Project Name: Smallvillejs
+ * Author: Abuti Martin
+ * License: MIT
+ * Version: 1.0.0
+ * Repository: https://github.com/Enrique-Mertoe/smallville_cdns
+ */
 !function (w, f) {
     "use strict";
     f(w);
