@@ -794,7 +794,102 @@
             setTimeout(controller, time || 0)
             return this;
         }
-    }
+    };
+    //smv-ajax
+    $$.post = function () {
+        let url, data, ok, error;
+        if (arguments.length) {
+            if (typeof arguments[0] === "object" && arguments[0].url) {
+                url = arguments[0].url;
+                data = arguments[0].data ?? {};
+                ok = arguments[0].ok;
+                error = arguments[0].error;
+            } else {
+                url = "string" === typeof arguments[0] ? arguments[0] : "";
+                data = data = arguments[1] || {};
+                [ok, error] = Array.from(arguments).slice(-2).filter(arg => typeof arg === "function");
+            }
+        }
+        if (!url) {
+            throw new Error("URL is required for fetch API")
+        }
+        return $$.post.dispatch({
+            url: url,
+            data: data,
+            method: "POST",
+            ok: ok,
+            error: error
+        });
+    };
+    $$.post.dispatch = function ({
+                                     url,
+                                     body,
+                                     method,
+                                     ok, error,
+                                     ...options
+                                 }) {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        function do_abort() {
+            controller.abort();
+        }
+
+        const SMVAjax = function (callback) {
+            return new SMVAjax.init(callback);
+        };
+        let ok_info, error_info, res_c, err_c;
+        (SMVAjax.init = function (callback) {
+            callback(res => {
+                ok_info = res
+                typeof ok_info !== "undefined" && res_c ? res_c(ok_info) : null;
+            }, err => {
+                error_info = err
+                typeof error_info !== "undefined" && err_c ? err_c(error_info) : null;
+            });
+        }).prototype = {
+            catch(e) {
+                err_c = e;
+                return this;
+            },
+            then(e) {
+                res_c = e;
+                return this;
+            },
+            abort() {
+                do_abort();
+                return this;
+            }
+        }
+        return SMVAjax((resolve, reject) => {
+            const run_catch = err => {
+                typeof error === "function" ? error(err) : null;
+                reject(err);
+            };
+            const run_resolved = res => {
+                if (typeof ok === "function") ok(res);
+                resolve(res);
+            };
+            fetch(url, {
+                method,
+                body,
+                signal,
+                ...options
+            }).then(res => {
+                if (!res.ok)
+                    run_catch(res)
+                else {
+                    const contentType = res.headers.get("Content-Type");
+                    if (contentType && contentType.includes("application/json")) {
+                        return res.json();
+                    } else {
+                        return res.text();
+                    }
+                }
+            }).then(data => typeof data !== "undefined" ? run_resolved(data) : null)
+                .catch(run_catch);
+        })
+    };
     SMV.init();
 });
 // smv js v1.0.1
