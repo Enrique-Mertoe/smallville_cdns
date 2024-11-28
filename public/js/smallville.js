@@ -331,24 +331,24 @@
                 return this
             },
             is(comparedTo) {
+                if (!list.length)
+                    return;
                 let match = false;
-                loop(function (item) {
-                    if (typeof comparedTo === "string") {
-                        if (item.matches(comparedTo)) {
-                            match = true;
-                        }
-                    } else if (comparedTo instanceof Element) {
-                        if (item === comparedTo) {
-                            match = true;
-                        }
-                    } else if (comparedTo.size && comparedTo.SMVQuery) {
-                        comparedTo.each(comparedItem => {
-                            if (item === comparedItem) {
-                                match = true;
-                            }
-                        });
+                let item = list[0];
+                if (typeof comparedTo === "string") {
+                    if (item.matches(comparedTo)) {
+                        match = true;
                     }
-                });
+                } else if (comparedTo instanceof Element) {
+                    if (item === comparedTo) {
+                        match = true;
+                    }
+                } else if (comparedTo.size && comparedTo.SMVQuery && comparedTo !== window) {
+                    comparedTo = comparedTo[0];
+                    if (item === comparedTo) {
+                        match = true;
+                    }
+                }
                 return match;
             },
             each(callback) {
@@ -882,8 +882,8 @@
                 signal,
                 ...options
             }).then(res => {
-                if (!res.ok )
-                    res.status !== 404? run_catch(res):null
+                if (!res.ok)
+                    res.status !== 404 ? run_catch(res) : null
                 else {
                     const contentType = res.headers.get("Content-Type");
                     if (contentType && contentType.includes("application/json")) {
