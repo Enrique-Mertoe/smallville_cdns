@@ -357,8 +357,8 @@
 
                     const top = rect.top + scrollTop;
                     const left = rect.left + scrollLeft;
-                    const right = left + element.offsetWidth;
-                    const bottom = top + element.offsetHeight;
+                    const right =  document.documentElement.clientWidth - rect.right + scrollLeft
+                    const bottom = document.documentElement.clientHeight - rect.bottom + scrollTop;
                     return {top, left, right, bottom};
                 }
 
@@ -378,8 +378,8 @@
 
                     const top = elementRect.top - parentRect.top;
                     const left = elementRect.left - parentRect.left;
-                    const right = parentRect.width - left - element.offsetWidth;
-                    const bottom = parentRect.height - top - element.offsetHeight;
+                    const right = parentRect.right - elementRect.right;
+                    const bottom = parentRect.bottom - elementRect.bottom;
 
                     return {top, left, right, bottom};
                 }
