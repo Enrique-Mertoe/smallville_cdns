@@ -330,6 +330,44 @@
                 })
                 return this
             },
+            offset(position) {
+                let top, left, off = {top, left};
+                if (!list.length)
+                    return off;
+
+                function getOffset(element) {
+                    if (!element || !(element instanceof Element)) {
+                        throw new Error("The argument must be a valid DOM element.");
+                    }
+                    while (element) {
+                        top += element.offsetTop || 0;
+                        left += element.offsetLeft || 0;
+                        element = element.offsetParent;
+                    }
+                }
+
+                function getOffsetRelativeToParent(element) {
+                    if (!element || !(element instanceof Element)) {
+                        throw new Error("The argument must be a valid DOM element.");
+                    }
+
+                    const parent = element.offsetParent;
+                    if (!parent) {
+                        top = element.offsetTop;
+                        element.offsetLeft
+                        return;
+                    }
+                    const elementRect = element.getBoundingClientRect();
+                    const parentRect = parent.getBoundingClientRect();
+
+
+                    top = elementRect.top - parentRect.top;
+                    left = elementRect.left - parentRect.left;
+                }
+
+                position ? getOffsetRelativeToParent(list[0]) : getOffset(list[0]);
+                return {top, left};
+            },
             is(comparedTo) {
                 if (!list.length)
                     return;
