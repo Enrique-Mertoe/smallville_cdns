@@ -331,7 +331,7 @@
                 return this
             },
             params() {
-                if (!list.length) return {};
+                if (!list.length) return {width: 0,height: 0};
                 let element = list[0];
                 if (!element || !(element instanceof Element)) {
                     throw new Error("The argument must be a valid DOM element.");
@@ -343,7 +343,7 @@
 
             },
             offset(position) {
-                let top, left, off = {top, left};
+                let top=0, left=0, off = {top, left};
                 if (!list.length)
                     return off;
 
