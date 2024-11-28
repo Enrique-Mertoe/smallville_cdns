@@ -331,7 +331,7 @@
                 return this
             },
             params() {
-                if (!list.length) return {width: 0,height: 0};
+                if (!list.length) return {width: 0, height: 0};
                 let element = list[0];
                 if (!element || !(element instanceof Element)) {
                     throw new Error("The argument must be a valid DOM element.");
@@ -343,42 +343,49 @@
 
             },
             offset(position) {
-                let top=0, left=0, off = {top, left};
                 if (!list.length)
-                    return off;
+                    return {top: 0, left: 0, right: 0, bottom: 0};
 
                 function getOffset(element) {
                     if (!element || !(element instanceof Element)) {
-                        throw new Error("The argument must be a valid DOM element.");
+                        return {top: 0, left: 0, right: 0, bottom: 0};
                     }
-                    while (element) {
-                        top += element.offsetTop || 0;
-                        left += element.offsetLeft || 0;
-                        element = element.offsetParent;
-                    }
+
+                    const rect = element.getBoundingClientRect();
+                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                    const top = rect.top + scrollTop;
+                    const left = rect.left + scrollLeft;
+                    const right = left + element.offsetWidth;
+                    const bottom = top + element.offsetHeight;
+                    return {top, left, right, bottom};
                 }
 
                 function getOffsetRelativeToParent(element) {
                     if (!element || !(element instanceof Element)) {
-                        throw new Error("The argument must be a valid DOM element.");
+                        return {top: 0, left: 0, right: 0, bottom: 0};
                     }
 
                     const parent = element.offsetParent;
+
                     if (!parent) {
-                        top = element.offsetTop;
-                        element.offsetLeft
-                        return;
+                        return {top: 0, left: 0, right: 0, bottom: 0};
                     }
+
                     const elementRect = element.getBoundingClientRect();
                     const parentRect = parent.getBoundingClientRect();
 
+                    const top = elementRect.top - parentRect.top;
+                    const left = elementRect.left - parentRect.left;
+                    const right = parentRect.width - left - element.offsetWidth;
+                    const bottom = parentRect.height - top - element.offsetHeight;
 
-                    top = elementRect.top - parentRect.top;
-                    left = elementRect.left - parentRect.left;
+                    return {top, left, right, bottom};
                 }
 
-                position ? getOffsetRelativeToParent(list[0]) : getOffset(list[0]);
-                return {top, left};
+                return position ? getOffsetRelativeToParent(list[0]) : getOffset(list[0]);
+
             },
             is(comparedTo) {
                 if (!list.length)
