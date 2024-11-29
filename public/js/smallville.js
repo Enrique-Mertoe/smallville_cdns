@@ -1,5 +1,5 @@
 /*!
- * Smallvillejs v1.0
+ * Smallvillejs v1.0.0
  * Author: Abuti Martin
  * License: MIT
  * Repository: https://github.com/Enrique-Mertoe/smallville_cdns
@@ -127,8 +127,10 @@
                     return null
                 }
                 loop(function (item) {
-
-                    item.innerHTML = value;
+                    if (value.SMVQuery && value.size && value !== window)
+                        item.innerHTML = value.html()
+                    else
+                        item.innerHTML = value;
 
                 })
                 smv_ev["html"]?.forEach(cb => {
@@ -357,7 +359,7 @@
 
                     const top = rect.top + scrollTop;
                     const left = rect.left + scrollLeft;
-                    const right =  document.documentElement.clientWidth - rect.right + scrollLeft
+                    const right = document.documentElement.clientWidth - rect.right + scrollLeft
                     const bottom = document.documentElement.clientHeight - rect.bottom + scrollTop;
                     return {top, left, right, bottom};
                 }
@@ -878,7 +880,7 @@
         }
         return $$.post.dispatch({
             url: url,
-            data: data,
+            body: data,
             method: "POST",
             ok: ok,
             error: error
@@ -954,5 +956,82 @@
         })
     };
     SMV.init();
+
+    //modals
+    const Modal = function (content) {
+        return new Modal.init(content);
+    };
+    (Modal.init = function (content) {
+        this.view = content;
+        let self = this;
+        let on_hide_callbacks = [],
+            on_show_callbacks = [];
+        const run_hide = function () {
+            content.rClass("show").css({opacity: 0, transition: '.2s'});
+            // eslint-disable-next-line no-unused-vars
+            setTimeout(_ => content.css({display: "none"}), 200);
+
+        }
+        const hide = function () {
+            let def = !!1;
+            on_hide_callbacks.some(e => {
+                typeof e === "function" ? e.call(self, {
+                    preventDefault() {
+                        def = !!0;
+                    },
+                    dismiss: run_hide,
+                    clear() {
+                        setTimeout(() => {
+                            content.remove();
+                        }, 300)
+                    }
+                }) : null;
+            });
+
+            if (def) run_hide();
+        }
+        const show = function () {
+            on_show_callbacks.some(e => {
+                typeof e === "function" ? e.call(self) : null;
+            })
+            content.css({display: 'block', opacity: 1});
+            setTimeout(() => content.aClass("show"))
+        }
+        const on_hide = function (callback) {
+
+            on_hide_callbacks.push(callback);
+        }
+        const on_show = function (callback) {
+            on_show_callbacks.push(callback);
+        }
+        content.data("show", show);
+        content.data("hide", hide);
+        content.data("on_hide", on_hide);
+        content.data("on_show", on_show);
+        content.find("[data-smv-dismiss=modal]").on("click", function (ev) {
+            ev.preventDefault();
+            hide();
+        })
+
+    }).prototype = Modal.prototype = {
+        constructor: Modal,
+        onDismiss() {
+            this.view.data("on_hide")(...arguments);
+            return this;
+        },
+        onOpen() {
+            this.view.data("on_show")(...arguments);
+            return this;
+        },
+        show() {
+            this.view.data("show")();
+            return this;
+        },
+        dismiss() {
+            this.view.data("hide")();
+            return this;
+        }
+    };
+    w.Modal = Modal;
 });
 // smv js v1.0.1
