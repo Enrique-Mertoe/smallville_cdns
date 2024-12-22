@@ -1,3 +1,9 @@
+/*!
+ * Smallvillejs v1.0.0
+ * Author: Abuti Martin
+ * License: MIT
+ * Repository: https://github.com/Enrique-Mertoe/smallville_cdns
+ */
 !function (w, f) {
     "use strict";
     f(w);
@@ -113,6 +119,30 @@
                 })
                 return this
             },
+            checked(checked) {
+                if (typeof checked === "undefined") {
+                    if (list.length) {
+                        return list[0]?.checked
+                    }
+                    return null
+                }
+                loop(function (item) {
+                    item.checked = checked;
+                })
+                return this
+            },
+            disable(disable) {
+                if (typeof disable === "undefined") {
+                    if (list.length) {
+                        return list[0]?.classList.contains("disabled")
+                    }
+                    return null
+                }
+                loop(function (item) {
+                    disable ? item.classList.add("disabled") : item.classList.remove("disabled");
+                })
+                return this
+            },
             html(value) {
                 if (typeof value === "undefined") {
                     if (list.length) {
@@ -121,8 +151,13 @@
                     return null
                 }
                 loop(function (item) {
-
-                    item.innerHTML = value;
+                    if (value.SMVQuery && value.size && value !== window) {
+                        item.innerHTML = "";
+                        for (let i = 0; i < value.size; i++) {
+                            item.appendChild(value[i]);
+                        }
+                    } else
+                        item.innerHTML = value;
 
                 })
                 smv_ev["html"]?.forEach(cb => {
@@ -324,25 +359,82 @@
                 })
                 return this
             },
-            is(comparedTo) {
-                let match = false;
-                loop(function (item) {
-                    if (typeof comparedTo === "string") {
-                        if (item.matches(comparedTo)) {
-                            match = true;
-                        }
-                    } else if (comparedTo instanceof Element) {
-                        if (item === comparedTo) {
-                            match = true;
-                        }
-                    } else if (comparedTo.size && comparedTo.SMVQuery) {
-                        comparedTo.each(comparedItem => {
-                            if (item === comparedItem) {
-                                match = true;
-                            }
-                        });
+            params() {
+                if (!list.length) return {width: 0, height: 0};
+                let element = list[0];
+                if (!element || !(element instanceof Element)) {
+                    throw new Error("The argument must be a valid DOM element.");
+                }
+
+                const width = element.offsetWidth;
+                const height = element.offsetHeight;
+                return {width, height};
+
+            },
+            offset(position) {
+                if (!list.length)
+                    return {top: 0, left: 0, right: 0, bottom: 0};
+
+                function getOffset(element) {
+                    if (!element || !(element instanceof Element)) {
+                        return {top: 0, left: 0, right: 0, bottom: 0};
                     }
-                });
+
+                    const rect = element.getBoundingClientRect();
+                    const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+                    const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+
+                    const top = rect.top + scrollTop;
+                    const left = rect.left + scrollLeft;
+                    const right = document.documentElement.clientWidth - rect.right + scrollLeft
+                    const bottom = document.documentElement.clientHeight - rect.bottom + scrollTop;
+                    return {top, left, right, bottom};
+                }
+
+                function getOffsetRelativeToParent(element) {
+                    if (!element || !(element instanceof Element)) {
+                        return {top: 0, left: 0, right: 0, bottom: 0};
+                    }
+
+                    const parent = element.offsetParent;
+
+                    if (!parent) {
+                        return {top: 0, left: 0, right: 0, bottom: 0};
+                    }
+
+                    const elementRect = element.getBoundingClientRect();
+                    const parentRect = parent.getBoundingClientRect();
+
+                    const top = elementRect.top - parentRect.top;
+                    const left = elementRect.left - parentRect.left;
+                    const right = parentRect.right - elementRect.right;
+                    const bottom = parentRect.bottom - elementRect.bottom;
+
+                    return {top, left, right, bottom};
+                }
+
+                return position ? getOffsetRelativeToParent(list[0]) : getOffset(list[0]);
+
+            },
+            is(comparedTo) {
+                if (!list.length)
+                    return;
+                let match = false;
+                let item = list[0];
+                if (typeof comparedTo === "string") {
+                    if (item.matches(comparedTo)) {
+                        match = true;
+                    }
+                } else if (comparedTo instanceof Element) {
+                    if (item === comparedTo) {
+                        match = true;
+                    }
+                } else if (comparedTo.size && comparedTo.SMVQuery && comparedTo !== window) {
+                    comparedTo = comparedTo[0];
+                    if (item === comparedTo) {
+                        match = true;
+                    }
+                }
                 return match;
             },
             each(callback) {
@@ -794,7 +886,213 @@
             setTimeout(controller, time || 0)
             return this;
         }
-    }
+    };
+    //smv-ajax
+    $$.post = function () {
+        let url, data, ok, error;
+        if (arguments.length) {
+            if (typeof arguments[0] === "object" && arguments[0].url) {
+                url = arguments[0].url;
+                data = arguments[0].data ?? {};
+                ok = arguments[0].ok;
+                error = arguments[0].error;
+            } else {
+                url = "string" === typeof arguments[0] ? arguments[0] : "";
+                data = "function" !== typeof arguments[1] ? arguments[1] : {};
+                [ok, error] = Array.from(arguments).slice(-2).filter(arg => typeof arg === "function");
+            }
+        }
+        if (!url) {
+            throw new Error("URL is required for fetch API")
+        }
+        return $$.post.dispatch({
+            url: url,
+            body: data,
+            method: "POST",
+            ok: ok,
+            error: error
+        });
+    };
+    $$.post.dispatch = function (
+        {
+            url,
+            body,
+            method,
+            ok, error,
+            ...options
+        }) {
+        const controller = new AbortController();
+        const signal = controller.signal;
+
+        function do_abort() {
+            controller.abort();
+        }
+
+        const SMVAjax = function (callback) {
+            return new SMVAjax.init(callback);
+        };
+        let ok_info, error_info, res_c, err_c;
+        (SMVAjax.init = function (callback) {
+            callback(res => {
+                ok_info = res
+                typeof ok_info !== "undefined" && res_c ? res_c(ok_info) : null;
+            }, err => {
+                error_info = err
+                typeof error_info !== "undefined" && err_c ? err_c(error_info) : null;
+            });
+        }).prototype = {
+            catch(e) {
+                err_c = e;
+                return this;
+            },
+            then(e) {
+                res_c = e;
+                return this;
+            },
+            abort() {
+                do_abort();
+                return this;
+            }
+        }
+
+        const toUrlEncoded = (data, parentKey = "") => {
+            const params = [];
+
+            for (const key in data) {
+                const fullKey = parentKey ? `${parentKey}[${key}]` : key;
+                const value = data[key];
+
+                if (value && typeof value === "object" && !Array.isArray(value)) {
+                    params.push(...toUrlEncoded(value, fullKey));
+                } else if (Array.isArray(value)) {
+                    value.forEach((item, index) => {
+                        params.push(...toUrlEncoded(item, `${fullKey}[${index}]`)); // Recurse for arrays
+                    });
+                } else {
+                    params.push(`${encodeURIComponent(fullKey)}=${encodeURIComponent(value)}`);
+                }
+            }
+
+            return params;
+        };
+        return SMVAjax((resolve, reject) => {
+            const run_catch = err => {
+                typeof error === "function" ? error(err) : null;
+                reject(err);
+            };
+            const run_resolved = res => {
+                if (typeof ok === "function") ok(res);
+                resolve(res);
+            };
+
+            let headers = {};
+            if (body instanceof FormData) {
+                //pass
+            } else if (typeof body === "string") {
+                headers["Content-Type"] = "application/x-www-form-urlencoded";
+            } else if (typeof body === "object") {
+                headers["Content-Type"] = "application/x-www-form-urlencoded";
+                const urlEncodedString = toUrlEncoded(body).join("&");
+                body = new URLSearchParams(urlEncodedString);
+            }
+            fetch(url, {
+                method,
+                headers,
+                body,
+                signal,
+                ...options
+            }).then(res => {
+                if (!res.ok)
+                    res.status !== 404 ? run_catch(res) : null
+                else {
+                    const contentType = res.headers.get("Content-Type");
+                    if (contentType && contentType.includes("application/json")) {
+                        return res.json();
+                    } else {
+                        return res.text();
+                    }
+                }
+            }).then(data => typeof data !== "undefined" ? run_resolved(data) : null)
+                .catch(run_catch);
+        })
+    };
     SMV.init();
+
+    //modals
+    const Modal = function (content) {
+        return new Modal.init(content);
+    };
+    (Modal.init = function (content) {
+        this.view = content;
+        let self = this;
+        let on_hide_callbacks = [],
+            on_show_callbacks = [];
+        const run_hide = function () {
+            content.rClass("show").css({opacity: 0, transition: '.2s'});
+            // eslint-disable-next-line no-unused-vars
+            setTimeout(_ => content.css({display: "none"}), 200);
+
+        }
+        const hide = function () {
+            let def = !!1;
+            on_hide_callbacks.some(e => {
+                typeof e === "function" ? e.call(self, {
+                    preventDefault() {
+                        def = !!0;
+                    },
+                    dismiss: run_hide,
+                    clear() {
+                        setTimeout(() => {
+                            content.remove();
+                        }, 300)
+                    }
+                }) : null;
+            });
+
+            if (def) run_hide();
+        }
+        const show = function () {
+            on_show_callbacks.some(e => {
+                typeof e === "function" ? e.call(self) : null;
+            })
+            content.css({display: 'block', opacity: 1});
+            setTimeout(() => content.aClass("show"))
+        }
+        const on_hide = function (callback) {
+
+            on_hide_callbacks.push(callback);
+        }
+        const on_show = function (callback) {
+            on_show_callbacks.push(callback);
+        }
+        content.data("show", show);
+        content.data("hide", hide);
+        content.data("on_hide", on_hide);
+        content.data("on_show", on_show);
+        content.find("[data-smv-dismiss=modal]").on("click", function (ev) {
+            ev.preventDefault();
+            hide();
+        })
+
+    }).prototype = Modal.prototype = {
+        constructor: Modal,
+        onDismiss() {
+            this.view.data("on_hide")(...arguments);
+            return this;
+        },
+        onOpen() {
+            this.view.data("on_show")(...arguments);
+            return this;
+        },
+        show() {
+            this.view.data("show")();
+            return this;
+        },
+        dismiss() {
+            this.view.data("hide")();
+            return this;
+        }
+    };
+    w.Modal = Modal;
 });
 // smv js v1.0.1
