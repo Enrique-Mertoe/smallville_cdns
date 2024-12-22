@@ -960,8 +960,10 @@
 
             for (const key in data) {
                 const fullKey = parentKey ? `${parentKey}[${key}]` : key;
-                const value = data[key];
-
+                let value = data[key];
+                if (value === undefined) {
+                    value = null;
+                }
                 if (value && typeof value === "object" && !Array.isArray(value)) {
                     params.push(...toUrlEncoded(value, fullKey));
                 } else if (Array.isArray(value)) {
