@@ -962,7 +962,7 @@
                 const fullKey = parentKey ? `${parentKey}[${key}]` : key;
                 let value = data[key];
                 if (value === undefined) {
-                    value = null;
+                    value = '';
                 }
                 if (value && typeof value === "object" && !Array.isArray(value)) {
                     params.push(...toUrlEncoded(value, fullKey));
