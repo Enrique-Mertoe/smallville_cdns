@@ -770,7 +770,7 @@
             $$(document)
                 .on('click', '[data-smv-link]', function (e) {
                     e.preventDefault();
-                    const url = $$(this).attr('data-smv-link');
+                    const url = $$(this).attr('data-smv-link') || $$(this).attr('href');
                     SMV.smv_page(url);
                 }).on("click", "[data-smv-toggle=modal]", function (ev) {
                 ev.preventDefault();
