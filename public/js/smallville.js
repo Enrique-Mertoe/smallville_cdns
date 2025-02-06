@@ -10,9 +10,31 @@
 }(window, function (w) {
     "use strict";
     let qry = function (selector) {
-        let list =
-            typeof selector === "string" ? document.querySelectorAll(selector) :
-                (selector instanceof NodeList || Array.isArray(selector) ? Array.from(selector) : [selector]);
+        // let list =
+        //     typeof selector === "string" ? document.querySelectorAll(selector) :
+        //         (selector instanceof NodeList || Array.isArray(selector) ? Array.from(selector) : [selector]);
+        // if (selector.SMVQuery && selector !== window) {
+        //     list = selector;
+        // }
+
+        let list;
+
+        if (typeof selector === "string") {
+            selector = selector.trim();
+            if (/^<[\w\W]+>$/.test(selector)) {
+                let temp = document.createElement("div");
+                temp.innerHTML = selector;
+                list = Array.from(temp.childNodes);
+            } else {
+                // Assume it's a CSS selector
+                list = document.querySelectorAll(selector);
+            }
+        } else if (selector instanceof NodeList || Array.isArray(selector)) {
+            list = Array.from(selector);
+        } else {
+            list = [selector];
+        }
+
         if (selector.SMVQuery && selector !== window) {
             list = selector;
         }
