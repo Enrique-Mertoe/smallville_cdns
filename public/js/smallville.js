@@ -1077,7 +1077,10 @@
         }
         const show = function () {
             on_show_callbacks.some(e => {
-                typeof e === "function" ? e.call(self) : null;
+                typeof e === "function" ? e.call(self,
+                    {
+                        dismiss(){self.view.data("hide")()},
+                    }) : null;
             })
             content.css({display: 'block', opacity: 1});
             setTimeout(() => content.aClass("show"))
