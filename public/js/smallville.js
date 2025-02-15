@@ -460,8 +460,8 @@
                 return match;
             },
             each(callback) {
-                loop(function (item) {
-                    callback.call(item, item)
+                loop(function (item,index) {
+                    callback.call(item, index)
                 })
                 return this
             },
