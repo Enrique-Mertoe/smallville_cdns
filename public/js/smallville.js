@@ -1096,7 +1096,13 @@
         content.find("[data-smv-dismiss=modal]").on("click", function (ev) {
             ev.preventDefault();
             hide();
-        })
+        });
+        w.SMVSignalBox.on("modal-content",function (){
+            content.find("[data-smv-dismiss=modal]").on("click", function (ev) {
+                ev.preventDefault();
+                hide();
+            });
+        });
 
     }).prototype = Modal.prototype = {
         constructor: Modal,
