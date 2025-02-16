@@ -1118,5 +1118,116 @@
         }
     };
     w.Modal = Modal;
+
+    //signalbox
+    w.SMVSignalBox = (function () {
+        let eventHandlers = {};
+        let plugins = {};
+
+        return {
+            /**
+             * Attach an event listener.
+             * @param {string} action - Event name
+             * @param {Function} handler - Callback function
+             */
+            on(action, handler) {
+                eventHandlers[action] = eventHandlers[action] || [];
+                eventHandlers[action].push(handler);
+            },
+
+            /**
+             * Attach a one-time event listener.
+             * @param {string} action - Event name
+             * @param {Function} handler - Callback function
+             */
+            once(action, handler) {
+                const wrapper = (...args) => {
+                    handler(...args);
+                    this.off(action, wrapper);
+                };
+                this.on(action, wrapper);
+            },
+
+            /**
+             * Remove a specific event handler or all handlers for an event.
+             * @param {string} action - Event name
+             * @param {Function} [handler] - Specific handler to remove (optional)
+             */
+            off(action, handler) {
+                if (!eventHandlers[action]) return;
+
+                if (!handler) {
+                    delete eventHandlers[action];
+                } else {
+                    eventHandlers[action] = eventHandlers[action].filter(h => h !== handler);
+                }
+            },
+
+            /**
+             * Trigger an event with optional arguments.
+             * @param {string} action - Event name
+             * @param {...any} args - Arguments to pass to handlers
+             */
+            trigger(action, ...args) {
+                eventHandlers[action]?.forEach(handler => handler(...args));
+            },
+
+            /**
+             * Get a list of all registered event names.
+             * @returns {string[]} - Array of event names
+             */
+            events() {
+                return Object.keys(eventHandlers);
+            },
+
+            /**
+             * Check if an event has any registered handlers.
+             * @param {string} action - Event name
+             * @returns {boolean} - True if event has handlers
+             */
+            has(action) {
+                return !!eventHandlers[action]?.length;
+            },
+
+            /**
+             * Remove all event listeners.
+             */
+            clearAll() {
+                eventHandlers = {};
+            },
+
+            /**
+             * Register a plugin for extending Listener.
+             * @param {string} name - Plugin name
+             * @param {Function} plugin - Plugin function
+             */
+            registerPlugin(name, plugin) {
+                if (plugins[name]) {
+                    throw new Error(`Plugin "${name}" is already registered.`);
+                }
+                plugins[name] = plugin;
+            },
+
+            /**
+             * Use a registered plugin.
+             * @param {string} name - Plugin name
+             * @param {...any} args - Arguments to pass to the plugin
+             */
+            use(name, ...args) {
+                if (!plugins[name]) {
+                    throw new Error(`Plugin "${name}" is not registered.`);
+                }
+                return plugins[name](this, ...args);
+            },
+
+            /**
+             * Get a list of registered plugins.
+             * @returns {string[]} - Array of plugin names
+             */
+            plugins() {
+                return Object.keys(plugins);
+            }
+        };
+    })();
 });
 // smv js v1.0.1
